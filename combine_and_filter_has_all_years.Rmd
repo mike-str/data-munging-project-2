@@ -1,0 +1,84 @@
+---
+title: "Untitled"
+output: pdf_document
+date: "2024-10-12"
+---
+
+```{r}
+if(!require(xlsx)){
+  install.packages('xlsx')
+  library('xlsx')
+}
+
+if(!require(dplyr)){
+  install.packages('dplyr')
+  library('dplyr')
+}
+```
+
+```{r}
+datasets.dir = "datasets/College_Scorecard_Raw_Data_06102024/"
+data.dict.dir = "CollegeScorecardDataDictionary.xlsx"
+
+path <- file.path(datasets.dir, data.dict.dir)
+
+df_dict <- read.xlsx(path, sheetName = "Institution_Data_Dictionary")
+```
+
+```{r}
+# SELECTING THE FILES I WANT TO MERGE
+
+datasets.dir = "datasets/College_Scorecard_Raw_Data_06102024"
+files <- list.files(path=datasets.dir, all.files=TRUE)
+files <- grep("MERGED", files, value = TRUE)
+files <- sort(files)
+
+files <- files[11:20]
+files
+```
+
+```{r}
+# MERGING THE FILES TOGETHER
+
+path <- file.path(datasets.dir, files[1])
+df <- read.delim(path, sep=",", na.strings = c("PS", "NA", ""))
+YEAR <- gsub("MERGED|\\.csv|_PP", "", files[1])
+df$YEAR <- YEAR
+
+for (file_name in files) {
+  if (file_name == files[1]) {
+    next
+  }
+  
+  path <- file.path(datasets.dir, file_name)
+  temp_df <- read.delim(path, sep=",", na.strings = c("PS", "NA", ""))
+  YEAR <- gsub("MERGED|\\.csv|_PP", "", file_name)
+  temp_df$YEAR <- YEAR
+  
+  df <- rbind(df, temp_df)
+}
+
+nrow(df)
+```
+
+```{r}
+# n() is number of rows per group, can double check by checking if (n() >= 10) has any groups
+# or instead of 10 whatever number we selected above
+group_list <- df %>%
+  group_by(UNITID) %>%
+  filter(n() >= 10) %>%
+  group_split()
+
+print(length(group_list))
+```
+```{r}
+group_list[9]
+```
+
+
+```{r}
+# MERGE RESULTING GROUPS AND SAVE
+
+combined_df <- bind_rows(group_list)
+write.csv(combined_df, "clean_complete_10_year_data.csv", row.names=FALSE)
+```

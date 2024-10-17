@@ -1,0 +1,29 @@
+---
+title: "Untitled"
+output: html_document
+date: "2024-10-17"
+---
+
+```{r}
+path <- file.path('clean_complete_10_year_data.csv')
+df <- read.delim(path, sep=",", na.strings = c("PS", "NA", ""))
+nrow(df)
+```
+
+```{r}
+ndf <- df[df$STABBR == 'FL', ]
+```
+
+```{r}
+# https://www.fl-counties.com/about-floridas-counties/florida-cities-by-county/
+# https://en.wikipedia.org/wiki/Florida_statistical_areas
+
+#############################
+# need to schools by region #
+#############################
+```
+
+```{r}
+write.csv(ndf, "fl_clean_complete_10_year_data.csv", row.names=FALSE)
+```
+
